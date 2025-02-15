@@ -1,0 +1,27 @@
+# Stage 1: Build the React App
+FROM node:20 AS build-stage
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy the rest of the app's source code and build it
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve the App Using Nginx
+FROM nginx:alpine AS serve-stage
+
+WORKDIR /usr/share/nginx/html
+
+# Copy the built files from the previous stage
+COPY --from=build-stage /app/build .
+
+# Expose the port for Nginx
+EXPOSE 3002
+
+# Start Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]
+
